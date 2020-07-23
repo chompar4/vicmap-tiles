@@ -1,0 +1,138 @@
+
+{
+    "meta": {
+        "tileHeightPx":  512,
+        "tileWidthPx":  512,
+        "dpi":  90.7142857142857,
+        "numLevels": 14,
+        "proj": "ESPG:3111"
+    },
+    "tile_limits": [
+        {
+            "level": 0,
+            "rowMin": 0, 
+            "rowMax": 1, 
+            "colMin": 0, 
+            "colMax": 2,
+            "resolution": 2116.670902167, 
+            "scale": 7559538.9286
+        }, 
+        {
+            "level": 1,
+            "rowMin": 0, 
+            "rowMax": 2, 
+            "colMin": 0, 
+            "colMax": 4,
+            "resolution": 1058.3354510835, 
+            "scale": 3779769.4643 
+        }, 
+        {
+            "level": 2,
+            "rowMin": 0, 
+            "rowMax": 4, 
+            "colMin": 0, 
+            "colMax": 8, 
+            "resolution": 529.167725541751, 
+            "scale": 1889884.73215
+        }, 
+        {
+            "level": 3,
+            "rowMin": 0, 
+            "rowMax": 8, 
+            "colMin": 0, 
+            "colMax": 16,
+            "resolution": 264.583862770876, 
+            "scale": 944942.366075
+        }, 
+        {
+            "level": 4,
+            "rowMin": 0, 
+            "rowMax": 16, 
+            "colMin": 0, 
+            "colMax": 32,
+            "resolution": 132.291931385578, 
+            "scale": 472471.183038
+        }, 
+        {
+            "level": 5,
+            "rowMin": 0, 
+            "rowMax": 32, 
+            "colMin": 0, 
+            "colMax": 64,
+            "resolution": 66.1459656927889, 
+            "scale": 236235.591519
+        }, 
+        {
+            "level": 6,
+            "rowMin": 0, 
+            "rowMax": 80, 
+            "colMin": 0, 
+            "colMax": 160,
+            "resolution": 26.4583862770876, 
+            "scale": 94494.2366075
+        }, 
+        {
+            "level": 7,
+            "rowMin": 0,
+            "rowMax": 160,
+            "colMin": 0,
+            "colMax": 320,
+            "resolution": 13.2291931385578, 
+            "scale": 47247.1183038
+        }, 
+        {
+            "level": 8,
+            "rowMin": 0, 
+            "rowMax": 320, 
+            "colMin": 0, 
+            "colMax": 640,
+            "resolution": 6.61459656927889, 
+            "scale": 23623.5591519
+        }, 
+        {
+            "level": 9,
+            "rowMin": 0, 
+            "rowMax": 800, 
+            "colMin": 0, 
+            "colMax": 1600,
+            "resolution": 2.64583862770876, 
+            "scale": 9449.42366075
+        }, 
+        {
+            "level": 10,
+            "rowMin": 0, 
+            "rowMax": 1600, 
+            "colMin": 0, 
+            "colMax": 3200,
+            "resolution": 1.32291931385578, 
+            "scale": 4724.71183038
+        }, 
+        {
+            "level": 11,
+            "rowMin": 0, 
+            "rowMax": 3200, 
+            "colMin": 0, 
+            "colMax": 6400,
+            "resolution": 0.661459656927889, 
+            "scale": 2362.35591519
+        }, 
+        {
+            "level": 12,
+            "rowMin": 0, 
+            "rowMax": 6400, 
+            "colMin": 0, 
+            "colMax": 12800,
+            "resolution": 0.330729828462544, 
+            "scale": 1181.17795759
+        }, 
+        {
+            "level": 13,
+            "rowMin": 0, 
+            "rowMax": 10000, 
+            "colMin": 0, 
+            "colMax": 20000,
+            "resolution": 0.2116670902167, 
+            "scale": 755.95389286
+        }
+    ]
+}
