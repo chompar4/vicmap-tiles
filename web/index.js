@@ -5,45 +5,22 @@ import {applyTransform} from 'ol/extent';
 import Graticule from 'ol/layer/Graticule';
 import TileLayer from 'ol/layer/Tile';
 import {TileDebug, XYZ} from 'ol/source';
-import {get as getProjection, getTransform} from 'ol/proj';
+import {get as getProjection, getTransform, transform} from 'ol/proj';
 import {register} from 'ol/proj/proj4';
 import OSM from 'ol/source/OSM';
 import TileImage from 'ol/source/TileImage';
+import Projection from 'ol/proj/Projection';
 import Stroke from 'ol/style/Stroke';
 import proj4 from 'proj4';
-
-
-var graticule = new Graticule({
-  // the style to use for the lines, optional.
-  strokeStyle: new Stroke({
-    color: 'rgba(255,120,0,0.9)',
-    width: 2,
-    lineDash: [0.5, 4]
-  }),
-  showLabels: true,
-  visible: false,
-  wrapX: false
-});
-
-// var extent = [1786000, 1997264.499195665, 2969010, 3081000]
 
 var map = new Map({
   layers: [
     new TileLayer({
       source: new OSM()
     }),
-    graticule , 
     new TileLayer({
         source: new TileDebug()
       }), 
-    new TileLayer({
-        // extent: extent,
-        source: new XYZ({
-            url: 'https://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{z}/{x}/{y}.png', 
-            // projection: 'ESPG:3111'
-        })
-    }),
-    
   ],
   target: 'map',
   view: new View({
@@ -56,8 +33,6 @@ var map = new Map({
 var queryInput = document.getElementById('epsg-query');
 var searchButton = document.getElementById('epsg-search');
 var resultSpan = document.getElementById('epsg-result');
-var renderEdgesCheckbox = document.getElementById('render-edges');
-var showGraticuleCheckbox = document.getElementById('show-graticule');
 
 function setProjection(code, name, proj4def, bbox) {
   if (code === null || name === null || proj4def === null || bbox === null) {
