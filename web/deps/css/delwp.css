@@ -1,0 +1,36 @@
+body {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    /*    min-height: 100% !important;*/
+}
+
+div#map{
+    height: 100%;
+    width: 100%;
+    /*    border: 1px solid #000;*/
+}
+div.tt-menu {
+    background-color: white;
+    padding: 5px 0 5px 5px;
+    width: 400px;
+    margin-top: 20px;
+}
+div.tt-suggestion{
+    padding: 0 0 5px 10px;
+    text-transform: capitalize;
+}
+div.tt-suggestion:hover{
+    color:#00b7bd;
+}
+
+@media screen and (max-width: 500px){
+    div.tt-menu {
+        width: 296px;
+        max-height: 270px;
+        overflow-y: auto;
+    }
+
+}
+
