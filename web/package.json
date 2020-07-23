@@ -1,14 +1,23 @@
 {
-    "name": "geomag-map",
-    "description": "Geomagnetic map",
-    "version": "0.0.1",
-    "private": true,
-    "homepage": "https://github.com/chompar4/vicmap-tiles",
-    "engine": "node >= 0.10.21",
-    "dependencies": {
-        "express": "3.4.4"
-    },
-    "scrits": {
-        "start": "node server.js"
-    }
+  "name": "vicmap-tiles",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chompar4/vicmap-tiles.git"
+  },
+  "author": "Sam Thompson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chompar4/vicmap-tiles/issues"
+  },
+  "homepage": "https://github.com/chompar4/vicmap-tiles#readme",
+  "dependencies": {
+    "ol": "^6.3.1",
+    "parcel": "^1.12.4"
+  }
 }
