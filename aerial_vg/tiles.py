@@ -152,26 +152,42 @@ def batch_georeference(zoom=0):
                         # solve for a, b, c
                         A = np.array([
                             [dLat, dLng, 1] # (x, y, 1)
-                            for (dLat, dLng) in pixel_points[0:3]
+                            for (dLat, dLng) in [pixel_points[1], pixel_points[3], pixel_points[0]]
                         ])
                         invA = np.linalg.inv(A)
 
-                        lhs = [[pt[0]] for pt in geo_points[0:3]]
+                        lhs = [[pt[0]] for pt in [geo_points[1], geo_points[3], geo_points[0]]]
 
                         (a, b, c) = invA.dot(lhs)
 
                         # solve for d, e, f 
-                        lhs = [[pt[1]] for pt in geo_points[0:3]]
+                        lhs = [[pt[1]] for pt in [geo_points[1], geo_points[3], geo_points[0]]]
 
                         (d, e, f) = invA.dot(lhs)
 
                         # construct transform from a, b, c, d, e, f
                         filename = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/{}-{}'.format(idx, colNum, rowNum)
                         dataset = rasterio.open(filename + '.png')
-                        new_dataset = rasterio.open(filename + '-new.png', 'w', driver='png',height=height, width=width, count=4, dtype=dataset.read(1).dtype)
-                        new_dataset.transform = Affine(a, b, c, d, e, f)
+                        transform = Affine(a, b, c, d, e, f)
+                        new_dataset = rasterio.open(
+                            filename + '-new.tif',
+                            'w',
+                            driver='GTiff',
+                            height=height,
+                            width=width,
+                            count=4,
+                            dtype=dataset.read(1).dtype,
+                            transform=transform, 
+                            crs='+proj=latlong',
+                            )
 
-                        assert new_dataset.transform * (0, 0) == geo_points[1], '{} != {}'.format(new_dataset.transform * (0, 0), geo_points[1])
+                        kwds = dataset.profile
+
+                        # assert new_dataset.transform * (0, 0) == geo_points[1], '{} != {}'.format(new_dataset.transform * (0, 0), geo_points[1])
+                        # assert new_dataset.transform * (0, 512) == geo_points[0], '{} != {}'.format(new_dataset.transform * (512, 512), geo_points[0])
+                        # assert new_dataset.transform * (512, 0) == geo_points[2], '{} != {}'.format(new_dataset.transform * (512, 512), geo_points[2])
+                        # assert new_dataset.transform * (512, 512) == geo_points[3], '{} != {}'.format(new_dataset.transform * (512, 512), geo_points[3])
+                        # assert new_dataset.transform * (256, 256) == geo_points[4]
 
                         for band_idx in dataset.indexes:
                             band = dataset.read(band_idx)
