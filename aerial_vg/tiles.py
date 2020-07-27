@@ -129,8 +129,8 @@ def batch_georeference(zoom=0):
                         width = meta["tileWidthPx"]
 
                         pixel_points = [
-                            (0, 0),
                             (0, 512),
+                            (0, 0),
                             (512, 0),
                             (512, 512),
                             (256, 256)
