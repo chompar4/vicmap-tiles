@@ -131,9 +131,20 @@ def batch_georeference(zoom=0):
                         pixel_points = [
                             (0, 512),
                             (0, 0),
-                            (512, 0),
                             (512, 512),
+                            (0, 512),
                             (256, 256)
+                        ]
+
+                        # swap x & y for georeferencing 
+                        pixel_points = [
+                            (y, x) for (x, y) in list(pixel_points)
+                        ]
+                        geo_points = [
+                            (y, x) for (x, y) in list(geo_points)
+                        ]
+                        grid_points = [
+                            (y, x) for (x, y) in list(grid_points)
                         ]
 
                         # affine transformation
@@ -152,16 +163,16 @@ def batch_georeference(zoom=0):
                         # solve for a, b, c
                         A = np.array([
                             [dLat, dLng, 1] # (x, y, 1)
-                            for (dLat, dLng) in [pixel_points[1], pixel_points[3], pixel_points[0]]
+                            for (dLat, dLng) in pixel_points[0:3]
                         ])
                         invA = np.linalg.inv(A)
 
-                        lhs = [[pt[0]] for pt in [geo_points[1], geo_points[3], geo_points[0]]]
+                        lhs = [[pt[0]] for pt in geo_points[0:3]]
 
                         (a, b, c) = invA.dot(lhs)
 
                         # solve for d, e, f 
-                        lhs = [[pt[1]] for pt in [geo_points[1], geo_points[3], geo_points[0]]]
+                        lhs = [[pt[1]] for pt in geo_points[0:3]]
 
                         (d, e, f) = invA.dot(lhs)
 
@@ -181,13 +192,12 @@ def batch_georeference(zoom=0):
                             crs='+proj=latlong',
                             )
 
-                        kwds = dataset.profile
-
-                        # assert new_dataset.transform * (0, 0) == geo_points[1], '{} != {}'.format(new_dataset.transform * (0, 0), geo_points[1])
-                        # assert new_dataset.transform * (0, 512) == geo_points[0], '{} != {}'.format(new_dataset.transform * (512, 512), geo_points[0])
-                        # assert new_dataset.transform * (512, 0) == geo_points[2], '{} != {}'.format(new_dataset.transform * (512, 512), geo_points[2])
-                        # assert new_dataset.transform * (512, 512) == geo_points[3], '{} != {}'.format(new_dataset.transform * (512, 512), geo_points[3])
-                        # assert new_dataset.transform * (256, 256) == geo_points[4]
+                        corner_pts = [
+                            (j, i)
+                            for x in pixel_points
+                            for (i, j) in [new_dataset.transform * (x)]
+                        ]
+                        import ipdb; ipdb.set_trace()
 
                         for band_idx in dataset.indexes:
                             band = dataset.read(band_idx)
