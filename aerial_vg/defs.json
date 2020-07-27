@@ -5,12 +5,16 @@
         "tileWidthPx":  512,
         "dpi":  90.7142857142857,
         "numLevels": 14,
-        "proj": "ESPG:3111"
+        "proj": "ESPG:3111", 
+        "XMin": 1786000,
+        "YMin": 1997264.499195665,
+        "XMax": 3953471.00160867,
+        "YMax": 3081000
     },
     "tile_limits": [
         {
             "level": 0,
-            "rowMin": 0, 
+            "rowMin": 0,
             "rowMax": 1, 
             "colMin": 0, 
             "colMax": 2,
