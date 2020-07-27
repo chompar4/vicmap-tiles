@@ -152,16 +152,16 @@ def batch_georeference(zoom=0):
                         # solve for a, b, c
                         A = np.array([
                             [dLat, dLng, 1] # (x, y, 1)
-                            for (dLat, dLng) in geo_points[0:3]
+                            for (dLat, dLng) in pixel_points[0:3]
                         ])
                         invA = np.linalg.inv(A)
 
-                        lhs = [[pt[0]] for pt in pixel_points[0:3]]
+                        lhs = [[pt[0]] for pt in geo_points[0:3]]
 
                         (a, b, c) = invA.dot(lhs)
 
                         # solve for d, e, f 
-                        lhs = [[pt[1]] for pt in pixel_points[0:3]]
+                        lhs = [[pt[1]] for pt in geo_points[0:3]]
 
                         (d, e, f) = invA.dot(lhs)
 
@@ -171,12 +171,14 @@ def batch_georeference(zoom=0):
                         new_dataset = rasterio.open(filename + '-new.png', 'w', driver='png',height=height, width=width, count=4, dtype=dataset.read(1).dtype)
                         new_dataset.transform = Affine(a, b, c, d, e, f)
 
+                        assert new_dataset.transform * (0, 0) == geo_points[1], '{} != {}'.format(new_dataset.transform * (0, 0), geo_points[1])
+
                         for band_idx in dataset.indexes:
                             band = dataset.read(band_idx)
                             new_dataset.write(band, band_idx)
 
                         new_dataset.close()
-                        
+
                 bar.finish()
 
 def open_raster():
