@@ -4,6 +4,8 @@ import os
 import numpy as np
 from pyproj import CRS, Transformer
 import rasterio
+from rasterio.transform import Affine
+import affine
 
 from progress.bar import ChargingBar 
 
@@ -97,7 +99,7 @@ def batch_georeference(zoom=0):
                         print("tile z {} , col {}, row {} (x, y): ({}, {})".format(idx, colNum, rowNum, x0, y0))
 
                         # center of tile
-                        E = x0 + dX / 2 
+                        E = x0 + dX / 2
                         N = y0 + dY / 2
 
                         # (x1, y1) is upper right corner of tile
@@ -117,22 +119,64 @@ def batch_georeference(zoom=0):
                             (E, N)
                         ]
 
-                        for (X, Y) in grid_points:
-                            # convert to geo coords
-                            dLat, dLng = transformer.transform(X, Y)
-                            print(dLat, dLng)
+                        geo_points = [
+                            transformer.transform(X, Y)
+                            for X, Y in grid_points
+                        ]
 
-                            # convert to pixel coords
-                            # origin is upper left corner
+                        # pixel coords
+                        height = meta["tileHeightPx"]
+                        width = meta["tileWidthPx"]
+
+                        pixel_points = [
+                            (0, 0),
+                            (0, 512),
+                            (512, 0),
+                            (512, 512),
+                            (256, 256)
+                        ]
+
+                        # affine transformation
+                        # The 3x3 augmented affine transformation matrix for transformations in two
+                        # dimensions is illustrated below.
+
+                        # | x' |   | a  b  c | | x |
+                        # | y' | = | d  e  f | | y |
+                        # | 1  |   | 0  0  1 | | 1 |
 
 
-                            # geofereence 
+                        #  giving system of equations
+                        # 1 ) x' = ax + by + c
+                        # 2 ) y' = dx + ey + f
 
+                        # solve for a, b, c
+                        A = np.array([
+                            [dLat, dLng, 1] # (x, y, 1)
+                            for (dLat, dLng) in geo_points[0:3]
+                        ])
+                        invA = np.linalg.inv(A)
 
+                        lhs = [[pt[0]] for pt in pixel_points[0:3]]
 
+                        (a, b, c) = invA.dot(lhs)
 
+                        # solve for d, e, f 
+                        lhs = [[pt[1]] for pt in pixel_points[0:3]]
 
-            
+                        (d, e, f) = invA.dot(lhs)
+
+                        # construct transform from a, b, c, d, e, f
+                        filename = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/{}-{}'.format(idx, colNum, rowNum)
+                        dataset = rasterio.open(filename + '.png')
+                        new_dataset = rasterio.open(filename + '-new.png', 'w', driver='png',height=height, width=width, count=4, dtype=dataset.read(1).dtype)
+                        new_dataset.transform = Affine(a, b, c, d, e, f)
+
+                        for band_idx in dataset.indexes:
+                            band = dataset.read(band_idx)
+                            new_dataset.write(band, band_idx)
+
+                        new_dataset.close()
+                        
                 bar.finish()
 
 def open_raster():
