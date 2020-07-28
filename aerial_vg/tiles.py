@@ -160,7 +160,8 @@ def batch_georeference(zoom=1):
                         #     (y, x) for (x, y) in list(grid_points)
                         # ]
 
-                        # affine transformation
+                        # define affine transformation
+                        # note: affine transformation only holds in grid coords
                         # The 3x3 augmented affine transformation matrix for transformations in two
                         # dimensions is illustrated below.
 
@@ -202,6 +203,7 @@ def batch_georeference(zoom=1):
                         # crs='+proj=latlong'
                         crs="+proj=lcc +lat_1=-36 +lat_2=-38 +lat_0=-37 +lon_0=145 +x_0=2500000 +y_0=2500000 +ellps=GRS80 +units=m +no_defs"
 
+                        # write geotiff georeferenced in VICGRID coords
                         new_dataset = rasterio.open(
                             filename + '-new.tif',
                             'w',
@@ -213,9 +215,6 @@ def batch_georeference(zoom=1):
                             count=dataset.count, 
                             dtype=dataset.read(1).dtype,
                             )
-
-                        # if colNum == 1 and rowNum == 0:
-                        #     import ipdb; ipdb.set_trace()
 
                         # corner_pts = [
                         #     (j, i)
