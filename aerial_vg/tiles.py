@@ -11,7 +11,7 @@ from rasterio.merge import merge
 import affine
 import multiprocessing as mp
 
-from progress.bar import ChargingBar 
+from progress.bar import FillingSquaresBar 
 
 # crs for pyproj
 vicgrid94 = CRS.from_epsg(3111)
@@ -30,7 +30,7 @@ def cleanup(_signo, _frame, _pool=None):
     sys.exit(_signo)
 
 def callback(chunk):
-    bar = ChargingBar("\t ", max=len(chunk))
+    bar = FillingSquaresBar("\t ", max=len(chunk))
     for (url, writepath) in chunk:
         response = requests.get(url, allow_redirects=True)
         with open(writepath, 'wb') as q: 
@@ -58,7 +58,7 @@ def pull_tiles():
             zoom = lvl["level"]
 
 
-            bar = ChargingBar("z: {}".format(zoom), max=rowMax * colMax)
+            bar = FillingSquaresBar("creating requests z: {}".format(zoom), max=rowMax * colMax)
 
             for x in range(colMax):
                 for y in range(rowMax):
@@ -70,7 +70,6 @@ def pull_tiles():
                         # create async request
                         url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
                         jobs.append((url, writepath))
-
                         bar.next()
                     
                     else: 
