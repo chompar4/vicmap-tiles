@@ -15,6 +15,9 @@ vicgrid94 = CRS.from_epsg(3111)
 wgs84 = CRS.from_epsg(4326)
 transformer = Transformer.from_crs(vicgrid94, wgs84)
 
+# path to tiles
+tilepath = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles'
+
 def pull_tiles():
     with open("defs.json", 'r') as p:
         blob = json.load(p)
@@ -36,7 +39,7 @@ def pull_tiles():
             for x in range(colMax):
                 for y in range(rowMax):
 
-                    writepath = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/{}-{}.png'.format(zoom, x, y)
+                    writepath = tilepath + '/{}/{}-{}.png'.format(zoom, x, y)
 
                     if not os.path.exists(writepath):
 
@@ -198,7 +201,7 @@ def batch_georeference(zoom=1):
                         colIdx = colNum
 
                         # write to file
-                        filename = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/{}-{}'.format(idx, colIdx, rowIdx)
+                        filename = tilepath + '/{}/{}-{}'.format(idx, colIdx, rowIdx)
                         dataset = rasterio.open(filename + '.png')
                         transform = Affine(a, b, c, d, e, f)
 
@@ -249,7 +252,7 @@ def batch_georeference(zoom=1):
                     "transform": out_transform, 
                     "crs": crs
                 })
-                with rasterio.open('/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/mosiac.tif'.format(idx), "w", **out_meta) as dest:
+                with rasterio.open(tilepath + '/{}/mosiac.tif'.format(idx), "w", **out_meta) as dest:
                     dest.write(mosaic)
 
 
@@ -259,7 +262,7 @@ def batch_georeference(zoom=1):
 
 def open_raster():
 
-    filename = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/0/0-0.png'
+    filename = tilepath + '/0/0-0.png'
     dataset = rasterio.open(filename)
 
 
@@ -275,9 +278,9 @@ def open_raster():
 
 
 if __name__ == "__main__":
-    # pull_tiles()
+    pull_tiles()
 
-    batch_georeference()
+    # batch_georeference()
 
     # open_raster()
     
