@@ -4,11 +4,14 @@ import os
 import numpy as np
 from pyproj import CRS, Transformer
 import rasterio
+import signal
+from functools import partial
 from rasterio.transform import Affine
 from rasterio.merge import merge
 import affine
+import multiprocessing as mp
 
-from progress.bar import ChargingBar 
+from progress.bar import FillingSquaresBar 
 
 # crs for pyproj
 vicgrid94 = CRS.from_epsg(3111)
@@ -18,23 +21,44 @@ transformer = Transformer.from_crs(vicgrid94, wgs84)
 # path to tiles
 tilepath = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles'
 
+def cleanup(_signo, _frame, _pool=None):
+    log.warning("received {}: cleaning up {}".format(_signo, _pool))
+    try:
+        _pool.terminate()
+    except AttributeError:
+        pass
+    sys.exit(_signo)
+
+def callback(chunk):
+    bar = FillingSquaresBar("\t ", max=len(chunk))
+    for (url, writepath) in chunk:
+        response = requests.get(url, allow_redirects=True)
+        with open(writepath, 'wb') as q: 
+            q.write(response.content)
+        bar.next()
+    bar.finish()
+
+
 def pull_tiles():
+
     with open("defs.json", 'r') as p:
         blob = json.load(p)
-        
-        meta = blob["meta"]
 
+        meta = blob["meta"]
         levels = blob["tile_limits"]
 
         print(meta)
 
         for idx, lvl in enumerate(levels): 
 
+            jobs = []
+
             rowMax = lvl["rowMax"]
             colMax = lvl["colMax"]
             zoom = lvl["level"]
 
-            bar = ChargingBar("Zoom Level: {}".format(zoom), max=rowMax * colMax)
+
+            bar = FillingSquaresBar("creating requests z: {}".format(zoom), max=rowMax * colMax)
 
             for x in range(colMax):
                 for y in range(rowMax):
@@ -43,18 +67,28 @@ def pull_tiles():
 
                     if not os.path.exists(writepath):
 
-                        # get the tile
+                        # create async request
                         url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
-                        r = requests.get(url, allow_redirects=True)
+                        jobs.append((url, writepath))
+                        bar.next()
+                    
+                    else: 
+                        bar.next()
 
-                        
-                        # write content to file
-                        with open(writepath, 'wb') as q: 
-                            q.write(r.content)
-
-                    bar.next()
-
-            bar.finish()
+            # run in multiproc mode
+            if jobs:
+                nprocs= mp.cpu_count() - 1
+                chunk_size = int(len(jobs) / nprocs)
+                chunks = [
+                    jobs[i:i+chunk_size]
+                    for i in range(0, len(jobs), chunk_size)
+                ]
+                pool = mp.Pool(processes=nprocs, maxtasksperchild=5)
+                _cleanup = partial(cleanup, _pool=pool)
+                signal.signal(signal.SIGTERM, _cleanup)
+                results = pool.map(callback, chunks, 1)
+                pool.close()
+                pool.join()
 
 def batch_georeference(zoom=1):
     
