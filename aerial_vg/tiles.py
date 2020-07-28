@@ -52,7 +52,7 @@ def pull_tiles():
 
             bar.finish()
 
-def batch_georeference(zoom=3):
+def batch_georeference(zoom=1):
     
     with open("defs.json", 'r') as p:
         blob = json.load(p)
@@ -119,10 +119,13 @@ def batch_georeference(zoom=3):
                             (x1, y1),
                         ]
 
-                        geo_points = [
-                            transformer.transform(X, Y)
-                            for X, Y in grid_points
-                        ]
+                        # transform to lat lng in wgs84
+                        # geo_points = [
+                        #     transformer.transform(X, Y)
+                        #     for X, Y in grid_points
+                        # ]
+
+                        geo_points = grid_points
 
                         # pixel coords
                         height = meta["tileHeightPx"]
@@ -144,19 +147,18 @@ def batch_georeference(zoom=3):
                             (256, 256),
                             (512, 512),
                             (512, 0),
-
                         ]
 
                         # swap x & y for georeferencing 
                         pixel_points = [
                             (y, x) for (x, y) in list(pixel_points)
                         ]
-                        geo_points = [
-                            (y, x) for (x, y) in list(geo_points)
-                        ]
-                        grid_points = [
-                            (y, x) for (x, y) in list(grid_points)
-                        ]
+                        # geo_points = [
+                        #     (y, x) for (x, y) in list(geo_points)
+                        # ]
+                        # grid_points = [
+                        #     (y, x) for (x, y) in list(grid_points)
+                        # ]
 
                         # affine transformation
                         # The 3x3 augmented affine transformation matrix for transformations in two
@@ -196,12 +198,16 @@ def batch_georeference(zoom=3):
                         dataset = rasterio.open(filename + '.png')
                         transform = Affine(a, b, c, d, e, f)
 
+                        # define crs
+                        # crs='+proj=latlong'
+                        crs="+proj=lcc +lat_1=-36 +lat_2=-38 +lat_0=-37 +lon_0=145 +x_0=2500000 +y_0=2500000 +ellps=GRS80 +units=m +no_defs"
+
                         new_dataset = rasterio.open(
                             filename + '-new.tif',
                             'w',
                             driver='GTiff', 
                             transform=transform, 
-                            crs='+proj=latlong', 
+                            crs=crs, 
                             height=dataset.height, 
                             width=dataset.width, 
                             count=dataset.count, 
