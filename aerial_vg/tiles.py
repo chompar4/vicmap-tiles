@@ -1,12 +1,15 @@
 import json 
-import grequests
+import requests
 import os
 import numpy as np
 from pyproj import CRS, Transformer
 import rasterio
+import signal
+from functools import partial
 from rasterio.transform import Affine
 from rasterio.merge import merge
 import affine
+import multiprocessing as mp
 
 from progress.bar import ChargingBar 
 
@@ -18,53 +21,22 @@ transformer = Transformer.from_crs(vicgrid94, wgs84)
 # path to tiles
 tilepath = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles'
 
-class AsyncCallback(grequests.AsyncRequest):
-    def __init__(self, method, url, callback, **kwargs):
-        super().__init__(method, url, **kwargs)
-        self.callback = callback
+def cleanup(_signo, _frame, _pool=None):
+    log.warning("received {}: cleaning up {}".format(_signo, _pool))
+    try:
+        _pool.terminate()
+    except AttributeError:
+        pass
+    sys.exit(_signo)
 
-def map_callback(requests, stream=False, size=None, exception_handler=None, gtimeout=None):
-    """Concurrently converts a list of Requests to Responses.
-    :param requests: a collection of Request objects.
-    :param stream: If True, the content will not be downloaded immediately.
-    :param size: Specifies the number of requests to make at a time. If None, no throttling occurs.
-    :param exception_handler: Callback function, called when exception occured. Params: Request, Exception
-    :param gtimeout: Gevent joinall timeout in seconds. (Note: unrelated to requests timeout)
-    """
-
-    requests = list(requests)
-
-    pool = grequests.Pool(size) if size else None
-    print('created pool, {} jobs to send'.format(len(requests)))
-    jobs = [grequests.send(r, pool, stream=stream) for r in requests]
-    print('sent jobs')
-
-    ret = []
-
-    for request in requests:
-        if request.response is not None:
-            response = request.response
-            ret.append(request.response)
-            """ 
-            HACK - also execute the callback on the request as required 
-            """
-            request.callback(response)
-        elif exception_handler and hasattr(request, 'exception'):
-            ret.append(exception_handler(request, request.exception))
-        elif exception_handler and not hasattr(request, 'exception'):
-            ret.append(exception_handler(request, None))
-        else:
-            ret.append(None)
-
-    return ret
-
-# handle request info
-def handle(writepath, bar):
-    def callback(response):
+def callback(chunk):
+    bar = ChargingBar("\t ", max=len(chunk))
+    for (url, writepath) in chunk:
+        response = requests.get(url, allow_redirects=True)
         with open(writepath, 'wb') as q: 
             q.write(response.content)
         bar.next()
-    return callback
+    bar.finish()
 
 
 def pull_tiles():
@@ -85,7 +57,8 @@ def pull_tiles():
             colMax = lvl["colMax"]
             zoom = lvl["level"]
 
-            bar = ChargingBar("Zoom Level: {}".format(zoom), max=rowMax * colMax)
+
+            bar = ChargingBar("z: {}".format(zoom), max=rowMax * colMax)
 
             for x in range(colMax):
                 for y in range(rowMax):
@@ -96,17 +69,27 @@ def pull_tiles():
 
                         # create async request
                         url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
-                        callback = handle(writepath, bar)
-                        request = AsyncCallback('GET', url, callback)
-                        jobs.append(request)
+                        jobs.append((url, writepath))
+
+                        bar.next()
                     
                     else: 
                         bar.next()
 
-            print('finished collecting requests')
-
-            map_callback(jobs, size=5)
-            bar.finish()
+            # run in multiproc mode
+            if jobs:
+                nprocs= mp.cpu_count() - 1
+                chunk_size = int(len(jobs) / nprocs)
+                chunks = [
+                    jobs[i:i+chunk_size]
+                    for i in range(0, len(jobs), chunk_size)
+                ]
+                pool = mp.Pool(processes=nprocs, maxtasksperchild=5)
+                _cleanup = partial(cleanup, _pool=pool)
+                signal.signal(signal.SIGTERM, _cleanup)
+                results = pool.map(callback, chunks, 1)
+                pool.close()
+                pool.join()
 
 def batch_georeference(zoom=1):
     
