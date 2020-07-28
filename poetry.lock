@@ -134,6 +134,17 @@ version = "4.4.2"
 
 [[package]]
 category = "main"
+description = "GDAL: Geospatial Data Abstraction Library"
+name = "gdal"
+optional = false
+python-versions = "*"
+version = "3.1.2"
+
+[package.extras]
+numpy = ["numpy (>1.0.0)"]
+
+[[package]]
+category = "main"
 description = "Coroutine-based network library"
 name = "gevent"
 optional = false
@@ -557,7 +568,7 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [metadata]
-content-hash = "3f0e0d8d46742d58cebbf995bcec83801719b40f752b38308c582ad0548faa15"
+content-hash = "7a3a221ddb9228f1f27d8a2c7d82a0449e4fbd16a1ed49fb583d169b0d63baa3"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -639,6 +650,9 @@ colorama = [
 decorator = [
     {file = "decorator-4.4.2-py2.py3-none-any.whl", hash = "sha256:41fa54c2a0cc4ba648be4fd43cff00aedf5b9465c9bf18d64325bc225f08f760"},
     {file = "decorator-4.4.2.tar.gz", hash = "sha256:e3a62f0520172440ca0dcc823749319382e377f37f140a0b99ef45fecb84bfe7"},
+]
+gdal = [
+    {file = "GDAL-3.1.2.tar.gz", hash = "sha256:698fa841a1ab75c121da736acb36ffe84c0a0081837884c208a3e5c9bcc4bf2b"},
 ]
 gevent = [
     {file = "gevent-20.6.2-cp27-cp27m-macosx_10_15_x86_64.whl", hash = "sha256:b03890bbddbae5667f5baad517417056496ff5e92c3c7945b27cc08f55a9fcb2"},

@@ -7,7 +7,7 @@ import rasterio
 import signal
 from functools import partial
 from rasterio.transform import Affine
-from rasterio.merge import merge
+from merge import merge
 import affine
 import multiprocessing as mp
 
@@ -90,7 +90,7 @@ def pull_tiles():
                 pool.close()
                 pool.join()
 
-def batch_georeference(zoom=1):
+def batch_georeference(zoom=3):
     
     with open("defs.json", 'r') as p:
         blob = json.load(p)
@@ -119,8 +119,6 @@ def batch_georeference(zoom=1):
                 colMax = lvl["colMax"]
                 zoom = lvl["level"]
 
-                bar = ChargingBar("Zoom Level: {}\n".format(zoom), max=rowMax * colMax)
-
                 nX = colMax - colMin
                 nY = rowMax - rowMin
 
@@ -129,14 +127,13 @@ def batch_georeference(zoom=1):
 
                 # georeference individual tiles
                 filenames = []
-                for colNum in range(colMax):
-                    for rowNum in range(rowMax):
+                for rowNum in range(rowMax):
+                    bar = FillingSquaresBar("row: {} of {} z: {}".format(rowNum, rowMax, zoom), max=colMax)
+                    for colNum in range(colMax):
 
                         # (x0, y0) is bottom left corner of tile in vicgrid94
                         x0 = xMin + dX * colNum
                         y0 = yMin + dY * rowNum
-
-                        print("tile z {} , col {}, row {} (x, y): ({}, {})".format(idx, colNum, rowNum, x0, y0))
 
                         # center of tile
                         E = x0 + dX / 2
@@ -241,7 +238,7 @@ def batch_georeference(zoom=1):
 
                         # define crs
                         # crs='+proj=latlong'
-                        crs="+proj=lcc +lat_1=-36 +lat_2=-38 +lat_0=-37 +lon_0=145 +x_0=2500000 +y_0=2500000 +ellps=GRS80 +units=m +no_defs"
+                        crs="+proj=lcc +lat_1=-36 +lat_2=-38 +lat_0=-37 +lon_0=145 +x_0=2500000 +y_0=-2500000 +ellps=GRS80 +units=m +no_defs"
 
                         # write geotiff georeferenced in VICGRID coords
                         new_dataset = rasterio.open(
@@ -256,13 +253,6 @@ def batch_georeference(zoom=1):
                             dtype=dataset.read(1).dtype,
                             )
 
-                        # corner_pts = [
-                        #     (j, i)
-                        #     for x in pixel_points
-                        #     for (i, j) in [new_dataset.transform * (x)]
-                        # ]
-                        # import ipdb; ipdb.set_trace()
-
                         for band_idx in dataset.indexes:
                             band = dataset.read(band_idx)
                             new_dataset.write(band, band_idx)                        
@@ -271,14 +261,14 @@ def batch_georeference(zoom=1):
                         dataset.close()
                         filenames.append(filename + '-new.tif')
 
-                # create merged raster mosaic from all tiles
-                to_merge = [
-                    rasterio.open(name)
-                    for name in filenames
-                ]
+                        bar.next()
                 
-                mosaic, out_transform = merge(to_merge)
-                out_meta = to_merge[0].meta.copy()
+                    bar.finish()
+
+                # create merged raster mosaic from all tiles
+                
+                mosaic, out_transform = merge(filenames)
+                out_meta = rasterio.open(filenames[0]).meta.copy()
                 out_meta.update({
                     "driver": "GTiff", 
                     "height": mosaic.shape[1], 
@@ -286,8 +276,13 @@ def batch_georeference(zoom=1):
                     "transform": out_transform, 
                     "crs": crs
                 })
-                with rasterio.open(tilepath + '/{}/mosiac.tif'.format(idx), "w", **out_meta) as dest:
+                pth = tilepath + '/{}/mosiac.tif'.format(idx)
+                with rasterio.open(pth, "w", **out_meta) as dest:
                     dest.write(mosaic)
+
+                print('file written to {}'.format(pth))
+
+                
 
 
 
@@ -312,9 +307,9 @@ def open_raster():
 
 
 if __name__ == "__main__":
-    pull_tiles()
+    # pull_tiles()
 
-    # batch_georeference()
+    batch_georeference()
 
     # open_raster()
     
