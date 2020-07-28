@@ -187,21 +187,25 @@ def batch_georeference(zoom=0):
 
                         (d, e, f) = invA.dot(lhs)
 
-                        # construct transform from a, b, c, d, e, f
+                        # write to file
                         filename = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/{}-{}'.format(idx, colNum, rowNum)
                         dataset = rasterio.open(filename + '.png')
                         transform = Affine(a, b, c, d, e, f)
+
                         new_dataset = rasterio.open(
                             filename + '-new.tif',
                             'w',
-                            driver='GTiff',
-                            height=height,
-                            width=width,
-                            count=4,
-                            dtype=dataset.read(1).dtype,
+                            driver='GTiff', 
                             transform=transform, 
-                            crs='+proj=latlong',
+                            crs='+proj=latlong', 
+                            height=dataset.height, 
+                            width=dataset.width, 
+                            count=dataset.count, 
+                            dtype=dataset.read(1).dtype,
                             )
+
+                        # if colNum == 1 and rowNum == 0:
+                        #     import ipdb; ipdb.set_trace()
 
                         # corner_pts = [
                         #     (j, i)
