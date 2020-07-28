@@ -1,5 +1,5 @@
 import json 
-import requests
+import grequests
 import os
 import numpy as np
 from pyproj import CRS, Transformer
@@ -18,17 +18,68 @@ transformer = Transformer.from_crs(vicgrid94, wgs84)
 # path to tiles
 tilepath = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles'
 
+class AsyncCallback(grequests.AsyncRequest):
+    def __init__(self, method, url, callback, **kwargs):
+        super().__init__(method, url, **kwargs)
+        self.callback = callback
+
+def map_callback(requests, stream=False, size=None, exception_handler=None, gtimeout=None):
+    """Concurrently converts a list of Requests to Responses.
+    :param requests: a collection of Request objects.
+    :param stream: If True, the content will not be downloaded immediately.
+    :param size: Specifies the number of requests to make at a time. If None, no throttling occurs.
+    :param exception_handler: Callback function, called when exception occured. Params: Request, Exception
+    :param gtimeout: Gevent joinall timeout in seconds. (Note: unrelated to requests timeout)
+    """
+
+    requests = list(requests)
+
+    pool = grequests.Pool(size) if size else None
+    print('created pool, {} jobs to send'.format(len(requests)))
+    jobs = [grequests.send(r, pool, stream=stream) for r in requests]
+    print('sent jobs')
+
+    ret = []
+
+    for request in requests:
+        if request.response is not None:
+            response = request.response
+            ret.append(request.response)
+            """ 
+            HACK - also execute the callback on the request as required 
+            """
+            request.callback(response)
+        elif exception_handler and hasattr(request, 'exception'):
+            ret.append(exception_handler(request, request.exception))
+        elif exception_handler and not hasattr(request, 'exception'):
+            ret.append(exception_handler(request, None))
+        else:
+            ret.append(None)
+
+    return ret
+
+# handle request info
+def handle(writepath, bar):
+    def callback(response):
+        with open(writepath, 'wb') as q: 
+            q.write(response.content)
+        bar.next()
+    return callback
+
+
 def pull_tiles():
+
     with open("defs.json", 'r') as p:
         blob = json.load(p)
-        
-        meta = blob["meta"]
 
+        meta = blob["meta"]
         levels = blob["tile_limits"]
 
         print(meta)
 
         for idx, lvl in enumerate(levels): 
+
+            jobs = []
 
             rowMax = lvl["rowMax"]
             colMax = lvl["colMax"]
@@ -43,17 +94,18 @@ def pull_tiles():
 
                     if not os.path.exists(writepath):
 
-                        # get the tile
+                        # create async request
                         url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
-                        r = requests.get(url, allow_redirects=True)
+                        callback = handle(writepath, bar)
+                        request = AsyncCallback('GET', url, callback)
+                        jobs.append(request)
+                    
+                    else: 
+                        bar.next()
 
-                        
-                        # write content to file
-                        with open(writepath, 'wb') as q: 
-                            q.write(r.content)
+            print('finished collecting requests')
 
-                    bar.next()
-
+            map_callback(jobs, size=5)
             bar.finish()
 
 def batch_georeference(zoom=1):
