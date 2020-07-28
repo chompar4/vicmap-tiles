@@ -114,9 +114,9 @@ def batch_georeference(zoom=0):
                         grid_points = [
                             (x0, y0),
                             (x0, y1),
+                            (E, N),
                             (x1, y0),
                             (x1, y1),
-                            (E, N)
                         ]
 
                         geo_points = [
@@ -128,12 +128,23 @@ def batch_georeference(zoom=0):
                         height = meta["tileHeightPx"]
                         width = meta["tileWidthPx"]
 
+                        # corrent png convention (upper left is (0, 0) lower left is (0, 512))
+                        # pixel_points = [
+                        #     (0, 512),
+                        #     (0, 0),
+                        #     (512, 512),
+                        #     (0, 512),
+                        #     (256, 256)
+                        # ]
+
+                        # vicgrid tiles (FFS) (upper left is (0, 0) lower left is (512, 0))
                         pixel_points = [
-                            (0, 512),
+                            (512, 0),
                             (0, 0),
+                            (256, 256),
                             (512, 512),
-                            (0, 512),
-                            (256, 256)
+                            (512, 0),
+
                         ]
 
                         # swap x & y for georeferencing 
@@ -192,18 +203,19 @@ def batch_georeference(zoom=0):
                             crs='+proj=latlong',
                             )
 
-                        corner_pts = [
-                            (j, i)
-                            for x in pixel_points
-                            for (i, j) in [new_dataset.transform * (x)]
-                        ]
-                        import ipdb; ipdb.set_trace()
+                        # corner_pts = [
+                        #     (j, i)
+                        #     for x in pixel_points
+                        #     for (i, j) in [new_dataset.transform * (x)]
+                        # ]
+                        # import ipdb; ipdb.set_trace()
 
                         for band_idx in dataset.indexes:
                             band = dataset.read(band_idx)
-                            new_dataset.write(band, band_idx)
+                            new_dataset.write(band, band_idx)                        
 
                         new_dataset.close()
+                        dataset.close()
 
                 bar.finish()
 
