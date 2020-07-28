@@ -5,6 +5,7 @@ import numpy as np
 from pyproj import CRS, Transformer
 import rasterio
 from rasterio.transform import Affine
+from rasterio.merge import merge
 import affine
 
 from progress.bar import ChargingBar 
@@ -89,6 +90,8 @@ def batch_georeference(zoom=1):
                 dX = xExtent / nX
                 dY = yExtent / nY
 
+                # georeference individual tiles
+                filenames = []
                 for colNum in range(colMax):
                     for rowNum in range(rowMax):
 
@@ -229,8 +232,30 @@ def batch_georeference(zoom=1):
 
                         new_dataset.close()
                         dataset.close()
+                        filenames.append(filename + '-new.tif')
 
-                bar.finish()
+                # create merged raster mosaic from all tiles
+                to_merge = [
+                    rasterio.open(name)
+                    for name in filenames
+                ]
+                
+                mosaic, out_transform = merge(to_merge)
+                out_meta = to_merge[0].meta.copy()
+                out_meta.update({
+                    "driver": "GTiff", 
+                    "height": mosaic.shape[1], 
+                    "width": mosaic.shape[2], 
+                    "transform": out_transform, 
+                    "crs": crs
+                })
+                with rasterio.open('/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/mosiac.tif'.format(idx), "w", **out_meta) as dest:
+                    dest.write(mosaic)
+
+
+
+
+
 
 def open_raster():
 
