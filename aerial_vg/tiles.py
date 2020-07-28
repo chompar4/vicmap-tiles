@@ -52,7 +52,7 @@ def pull_tiles():
 
             bar.finish()
 
-def batch_georeference(zoom=0):
+def batch_georeference(zoom=3):
     
     with open("defs.json", 'r') as p:
         blob = json.load(p)
@@ -187,8 +187,12 @@ def batch_georeference(zoom=0):
 
                         (d, e, f) = invA.dot(lhs)
 
+                        # index row numbers
+                        rowIdx = (rowMax - 1) - rowNum
+                        colIdx = colNum
+
                         # write to file
-                        filename = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/{}-{}'.format(idx, colNum, rowNum)
+                        filename = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles/{}/{}-{}'.format(idx, colIdx, rowIdx)
                         dataset = rasterio.open(filename + '.png')
                         transform = Affine(a, b, c, d, e, f)
 
