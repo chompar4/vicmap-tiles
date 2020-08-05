@@ -1,0 +1,24 @@
+{
+  "name": "vicmap-tiles",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chompar4/vicmap-tiles.git"
+  },
+  "author": "Sam Thompson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chompar4/vicmap-tiles/issues"
+  },
+  "homepage": "https://github.com/chompar4/vicmap-tiles#readme",
+  "dependencies": {
+    "ol": "^6.3.1",
+    "parcel": "^1.12.4",
+    "proj4": "^2.6.2"
+  }
+}
