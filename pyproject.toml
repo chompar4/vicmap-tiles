@@ -7,14 +7,8 @@ authors = ["Sam Thompson <chompar4@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 ipdb = "^0.13.3"
-numpy = "^1.19.1"
 requests = "^2.24.0"
 progress = "^1.5"
-pyproj = "^2.6.1"
-rasterio = "^1.1.5"
-affine = "^2.3.0"
-grequests = "^0.6.0"
-gdal = "^3.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
