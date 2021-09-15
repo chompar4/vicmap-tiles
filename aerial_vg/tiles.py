@@ -32,30 +32,29 @@ def pull_tiles():
 
         for idx, lvl in enumerate(levels): 
 
-            if idx == 2:
-
                 rowMax = lvl["rowMax"]
                 colMax = lvl["colMax"]
                 zoom = lvl["level"]
 
+                if zoom < 7:
 
-                bar = FillingSquaresBar("creating requests z: {}".format(zoom), max=rowMax * colMax)
+                    bar = FillingSquaresBar("pulling zoom level z: {}".format(zoom), max=rowMax * colMax)
 
-                for x in range(colMax):
-                    for y in range(rowMax):
+                    for x in range(colMax):
+                        for y in range(rowMax):
 
-                        writepath = tilepath + '/{}/{}-{}.png'.format(zoom, x, y)
+                            writepath = tilepath + '/{}/{}-{}.png'.format(zoom, x, y)
 
-                        if not os.path.exists(writepath):
+                            if not os.path.exists(writepath):
 
-                            url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
-                            with open(writepath, 'wb') as q:
-                                response = requests.get(url, allow_redirects=True)
-                                q.write(response.content)
-                            bar.next()
-                        else: 
-                            bar.next()
-                bar.finish()
+                                url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
+                                with open(writepath, 'wb') as q:
+                                    response = requests.get(url, allow_redirects=True)
+                                    q.write(response.content)
+                                bar.next()
+                            else: 
+                                bar.next()
+                    bar.finish()
 
 def batch_georeference(zoom=3):
     
