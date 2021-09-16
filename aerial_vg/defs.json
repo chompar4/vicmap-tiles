@@ -132,7 +132,7 @@
         {
             "level": 13,
             "rowMin": 0, 
-            "rowMax": 10000, 
+            "rowMax": 10000,
             "colMin": 0, 
             "colMax": 20000,
             "resolution": 0.2116670902167, 

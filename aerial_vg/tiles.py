@@ -10,7 +10,7 @@ from functools import partial
 # import affine
 import multiprocessing as mp
 
-from progress.bar import FillingSquaresBar 
+from alive_progress import alive_bar
 
 # crs for pyproj
 vicgrid94 = CRS.from_epsg(3111)
@@ -36,25 +36,25 @@ def pull_tiles():
                 colMax = lvl["colMax"]
                 zoom = lvl["level"]
 
-                if zoom < 7:
+                if zoom == 9:
 
-                    bar = FillingSquaresBar("pulling zoom level z: {}".format(zoom), max=rowMax * colMax)
+                    print(f'Zoom level: {zoom}')
+                    with alive_bar(rowMax * colMax) as bar:
 
-                    for x in range(colMax):
-                        for y in range(rowMax):
+                        for x in range(colMax):
+                            for y in range(rowMax):
 
-                            writepath = tilepath + '/{}/{}-{}.png'.format(zoom, x, y)
+                                writepath = tilepath + '/{}/{}-{}.png'.format(zoom, x, y)
 
-                            if not os.path.exists(writepath):
+                                if not os.path.exists(writepath):
 
-                                url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
-                                with open(writepath, 'wb') as q:
-                                    response = requests.get(url, allow_redirects=True)
-                                    q.write(response.content)
-                                bar.next()
-                            else: 
-                                bar.next()
-                    bar.finish()
+                                    url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
+                                    with open(writepath, 'wb') as q:
+                                        response = requests.get(url, allow_redirects=True)
+                                        q.write(response.content)
+                                    bar()
+                                else: 
+                                    bar()
 
 def batch_georeference(zoom=3):
     

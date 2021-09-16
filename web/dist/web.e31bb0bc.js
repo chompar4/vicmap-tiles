@@ -72572,7 +72572,7 @@ var _proj3 = _interopRequireDefault(require("proj4"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var p3111 = (0, _proj.get)('3111');
+var p3111 = (0, _proj.get)('4326');
 var map = new _Map.default({
   layers: [new _Tile.default({
     source: new _OSM.default()
@@ -72591,6 +72591,35 @@ var map = new _Map.default({
     zoom: 1
   })
 });
+
+Vicgrid94.prototype.toTile = function (resolution) {
+  //	calculate tile
+  var tileOriginX = 1786000;
+  var tileOriginY = 3081000;
+  var zoomLevel = getZoomLevel(resolution);
+  var xOffset = this.easting - tileOriginX;
+  var yOffset = tileOriginY - this.northing;
+  var tilesize = 512 * resolution;
+  var tileC = Math.floor(xOffset / tilesize); //- 1;
+
+  var tileR = Math.floor(yOffset / tilesize); //- 1;
+
+  var s = "L" + stringNumber(zoomLevel, 2) + "/R" + stringNumber(tileR, 8, 16) + "/C" + stringNumber(tileC, 8, 16);
+  return s;
+};
+
+function getZoomLevel(resolution) {
+  var resolutions = [2116.670900008467, 1058.3354500042335, 529.1677250021168, 264.5838625010584, 132.2919312505292, 66.1459656252646, 26.458386250105836, 13.229193125052918, 6.614596562526459, 2.6458386250105836, 1.3229193125052918, 0.6614596562526459, 0.33072982812632296, 0.21166709000084669, -1];
+  var zoomLevel = 0;
+
+  while (resolutions[zoomLevel] > 0) {
+    if (Math.abs(resolution - resolutions[zoomLevel]) < resolutions[zoomLevel] / 100) return zoomLevel;
+    zoomLevel++;
+  }
+
+  return zoomLevel;
+}
+
 var code = 3111;
 var bbox = [];
 fetch("https://epsg.io/?format=json&q=".concat(code)).then(function (response) {
@@ -72668,7 +72697,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55952" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57723" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
