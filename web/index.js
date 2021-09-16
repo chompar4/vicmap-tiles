@@ -10,7 +10,7 @@ import {register} from 'ol/proj/proj4';
 import OSM from 'ol/source/OSM';
 import proj4 from 'proj4';
 
-var p3111 = getProjection('3111')
+var p3111 = getProjection('4326')
 
 var map = new Map({
   layers: [
@@ -35,6 +35,60 @@ var map = new Map({
   })
 });
 
+<<<<<<< HEAD
+=======
+Vicgrid94.prototype.toTile = function(resolution) 
+{
+
+//	calculate tile
+
+    var tileOriginX = 1786000;
+    var tileOriginY = 3081000;
+    var zoomLevel = getZoomLevel(resolution);
+
+		var xOffset = this.easting - tileOriginX;
+		var yOffset = tileOriginY - this.northing;
+		var tilesize = 512 * resolution;
+		var tileC = Math.floor(xOffset / tilesize); //- 1;
+		var tileR = Math.floor(yOffset / tilesize); //- 1;
+		
+		var s = "L" + stringNumber(zoomLevel,2) + "/R" + stringNumber(tileR,8,16) + "/C" + stringNumber(tileC,8,16);
+		
+		
+    return  s; 
+}
+
+function getZoomLevel (resolution)
+{
+	  var resolutions = [
+        2116.670900008467,
+        1058.3354500042335,
+        529.1677250021168,
+        264.5838625010584,
+        132.2919312505292,
+        66.1459656252646,
+        26.458386250105836,
+        13.229193125052918,
+        6.614596562526459,
+        2.6458386250105836,
+        1.3229193125052918,
+        0.6614596562526459,
+        0.33072982812632296,
+        0.21166709000084669,
+        -1
+	  ];
+	  var zoomLevel = 0;
+	  while (resolutions[zoomLevel] > 0)
+	  {
+	  	if (Math.abs(resolution - resolutions[zoomLevel]) < resolutions[zoomLevel]/100)
+	  		return zoomLevel;
+	  	zoomLevel ++;	
+	  }
+	
+		return zoomLevel;	
+}
+
+>>>>>>> feature/aerial_vg
 
 var code = 3111
 var bbox = []

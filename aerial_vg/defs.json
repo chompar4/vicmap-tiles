@@ -132,7 +132,11 @@
         {
             "level": 13,
             "rowMin": 0, 
+<<<<<<< HEAD
             "rowMax": 10000, 
+=======
+            "rowMax": 10000,
+>>>>>>> feature/aerial_vg
             "colMin": 0, 
             "colMax": 20000,
             "resolution": 0.2116670902167, 

@@ -1,17 +1,16 @@
 import json 
 import requests
 import os
-import numpy as np
 from pyproj import CRS, Transformer
-import rasterio
+# import rasterio
 import signal
 from functools import partial
-from rasterio.transform import Affine
-from merge import merge
-import affine
+# from rasterio.transform import Affine
+# from merge import merge
+# import affine
 import multiprocessing as mp
 
-from progress.bar import FillingSquaresBar 
+from alive_progress import alive_bar
 
 # crs for pyproj
 vicgrid94 = CRS.from_epsg(3111)
@@ -19,25 +18,7 @@ wgs84 = CRS.from_epsg(4326)
 transformer = Transformer.from_crs(vicgrid94, wgs84)
 
 # path to tiles
-tilepath = '/Volumes/SAM/vicmap-tiles/aerial_vg/tiles'
-
-def cleanup(_signo, _frame, _pool=None):
-    log.warning("received {}: cleaning up {}".format(_signo, _pool))
-    try:
-        _pool.terminate()
-    except AttributeError:
-        pass
-    sys.exit(_signo)
-
-def callback(chunk):
-    bar = FillingSquaresBar("\t ", max=len(chunk))
-    for (url, writepath) in chunk:
-        response = requests.get(url, allow_redirects=True)
-        with open(writepath, 'wb') as q: 
-            q.write(response.content)
-        bar.next()
-    bar.finish()
-
+tilepath = '/Users/sam/Documents/Projects/vicmap-tiles/aerial_vg/test'
 
 def pull_tiles():
 
@@ -51,44 +32,29 @@ def pull_tiles():
 
         for idx, lvl in enumerate(levels): 
 
-            jobs = []
+                rowMax = lvl["rowMax"]
+                colMax = lvl["colMax"]
+                zoom = lvl["level"]
 
-            rowMax = lvl["rowMax"]
-            colMax = lvl["colMax"]
-            zoom = lvl["level"]
+                if zoom == 9:
 
+                    print(f'Zoom level: {zoom}')
+                    with alive_bar(rowMax * colMax) as bar:
 
-            bar = FillingSquaresBar("creating requests z: {}".format(zoom), max=rowMax * colMax)
+                        for x in range(colMax):
+                            for y in range(rowMax):
 
-            for x in range(colMax):
-                for y in range(rowMax):
+                                writepath = tilepath + '/{}/{}-{}.png'.format(zoom, x, y)
 
-                    writepath = tilepath + '/{}/{}-{}.png'.format(zoom, x, y)
+                                if not os.path.exists(writepath):
 
-                    if not os.path.exists(writepath):
-
-                        # create async request
-                        url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
-                        jobs.append((url, writepath))
-                        bar.next()
-                    
-                    else: 
-                        bar.next()
-
-            # run in multiproc mode
-            if jobs:
-                nprocs= mp.cpu_count() - 1
-                chunk_size = int(len(jobs) / nprocs)
-                chunks = [
-                    jobs[i:i+chunk_size]
-                    for i in range(0, len(jobs), chunk_size)
-                ]
-                pool = mp.Pool(processes=nprocs, maxtasksperchild=5)
-                _cleanup = partial(cleanup, _pool=pool)
-                signal.signal(signal.SIGTERM, _cleanup)
-                results = pool.map(callback, chunks, 1)
-                pool.close()
-                pool.join()
+                                    url = 'http://base.maps.vic.gov.au/wmts/AERIAL_VG/EPSG:3111/{}/{}/{}.png'.format(zoom, x, y)
+                                    with open(writepath, 'wb') as q:
+                                        response = requests.get(url, allow_redirects=True)
+                                        q.write(response.content)
+                                    bar()
+                                else: 
+                                    bar()
 
 def batch_georeference(zoom=3):
     
@@ -307,9 +273,9 @@ def open_raster():
 
 
 if __name__ == "__main__":
-    # pull_tiles()
+    pull_tiles()
 
-    batch_georeference()
+    # batch_georeference()
 
     # open_raster()
     
